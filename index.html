@@ -1,0 +1,224 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Nim</title>
+</head>
+<body>
+
+
+<table style="width:500px; margin-left:auto; margin-right:auto;">
+	<tr id="pileNames">
+  	<td style="text-align:center;">Pile One</td>
+    <td style="text-align:center;">Pile Two</td>
+    <td style="text-align:center;">Pile Three</td>
+  </tr>
+  <tr id="pileCounts">
+  	<td style="text-align:center;" onclick="removeOneFrom1();" id="pileOneCount">0</td>
+    <td style="text-align:center;" onclick="removeOneFrom2();" id="pileTwoCount">0</td>
+    <td style="text-align:center;" onclick="removeOneFrom3();" id="pileThreeCount">0</td>
+  </tr>
+  <tr id="buttons">
+  	<td style="text-align:center;"></td>
+    <td style="text-align:center;"><button onclick="aiTurn();" id="endTurn">AI Go</button></td>
+    <td style="text-align:center;"><button onclick="deal();" id="redeal">Redeal</button></td>
+  </tr>
+</table>
+<div style="width:500px; margin-left:auto; margin-right:auto; text-align:center;" ><p id="infoField"></p></div>
+
+<script type="text/javascript">
+
+var gameWon = 0;
+
+function removeOneFrom1()
+{
+	if (arrayOfPiles[0] > 0){
+		arrayOfPiles[0]--;
+		update();
+	}
+	console.log("end "+!(arrayOfPiles[0]+arrayOfPiles[1]+arrayOfPiles[2])+" . "+(gameWon != 1));
+	if (!(arrayOfPiles[0]+arrayOfPiles[1]+arrayOfPiles[2]) && (gameWon != 1)){
+		document.getElementById("infoField").innerHTML = "You Win!";
+		gameWon = 1;
+	}
+}
+function removeOneFrom2()
+{
+	if (arrayOfPiles[1] > 0){
+		arrayOfPiles[1]--;
+		update();
+	}
+	console.log("end "+!(arrayOfPiles[0]+arrayOfPiles[1]+arrayOfPiles[2])+" . "+(gameWon != 1));
+	if (!(arrayOfPiles[0]+arrayOfPiles[1]+arrayOfPiles[2]) && (gameWon != 1)){
+		document.getElementById("infoField").innerHTML = "You Win!";
+		gameWon = 1;
+	}
+}
+function removeOneFrom3()
+{
+	if (arrayOfPiles[2] > 0){
+		arrayOfPiles[2]--;
+		update();
+	}
+	console.log("end "+!(arrayOfPiles[0]+arrayOfPiles[1]+arrayOfPiles[2])+" . "+(gameWon != 1));
+	if (!(arrayOfPiles[0]+arrayOfPiles[1]+arrayOfPiles[2]) && (gameWon != 1)){
+		document.getElementById("infoField").innerHTML = "You Win!";
+		gameWon = 1;
+	}
+}
+
+var arrayOfPiles = [0,0,0];
+
+// Once document is ready begin
+var readyStateCheckInterval = setInterval(function() {
+    if (document.readyState === "complete") {
+      deal();
+      clearInterval(readyStateCheckInterval);
+    }
+}, 10);
+
+
+function update()
+{
+	document.getElementById("pileOneCount").innerHTML = arrayOfPiles[0];
+	document.getElementById("pileTwoCount").innerHTML = arrayOfPiles[1];
+	document.getElementById("pileThreeCount").innerHTML = arrayOfPiles[2];
+}
+
+function deal()
+{
+	gameWon = 0;
+	document.getElementById("infoField").innerHTML = "";
+	for (var i=0; i<arrayOfPiles.length;i++){
+		arrayOfPiles[i] = Math.floor(Math.random() * (15 - 1 + 1)) + 1;
+	}
+	update();
+}
+
+// Computer's Turn Logic
+function aiTurn()
+{
+	var arrayOfPilesV2 = arrayOfPiles.slice();
+	var arrayOfP1PowerCounts = [0,0,0,0];
+	var arrayOfP2PowerCounts = [0,0,0,0];
+	var arrayOfP3PowerCounts = [0,0,0,0];
+	var arrayOfArraysOfPowerCounts = [arrayOfP1PowerCounts,arrayOfP2PowerCounts,arrayOfP3PowerCounts];
+	
+	var arrayOfP1NimSumWithNet = [0,0,0,0];
+	var arrayOfP2NimSumWithNet = [0,0,0,0];
+	var arrayOfP3NimSumWithNet = [0,0,0,0];
+	var arrayOfArraysOfNimSums = [arrayOfP1NimSumWithNet,arrayOfP2NimSumWithNet,arrayOfP3NimSumWithNet];
+	var arrayOfTotalPowers = [0,0,0,0];
+	// individual 8s, 4s, 2s, and 1s
+	for(var i = 0; i < arrayOfArraysOfPowerCounts.length; i++){
+		if ((arrayOfPilesV2[i] - 8) >= 0){
+			arrayOfArraysOfPowerCounts[i][3]++;
+			arrayOfPilesV2[i] -= 8;
+		}
+		if (arrayOfPilesV2[i] - 4 >= 0){
+			arrayOfArraysOfPowerCounts[i][2]++;
+			arrayOfPilesV2[i] -= 4;
+		}
+		if (arrayOfPilesV2[i] - 2 >= 0){
+			arrayOfArraysOfPowerCounts[i][1]++;
+			arrayOfPilesV2[i] -= 2;
+		}
+		if (arrayOfPilesV2[i] - 1 >= 0){
+			arrayOfArraysOfPowerCounts[i][0]++;
+			arrayOfPilesV2[i] -= 1;
+		}
+	}
+	
+	// net 8s, 4s, 2s, and 1s
+	for (var i = 0; i < arrayOfArraysOfPowerCounts.length; i++){
+		for (var a = 0; a < arrayOfArraysOfPowerCounts[i].length; a++){
+			arrayOfTotalPowers[a] += arrayOfArraysOfPowerCounts[i][a];
+		}
+	}
+	// Nim-sum / remove pairs
+	for (var i = 0; i < arrayOfTotalPowers.length; i++){
+		if (arrayOfTotalPowers[i] % 2 === 0){
+			arrayOfTotalPowers[i] = 0;
+		}
+	}
+	
+	// Pick pile and how much to take from it.
+	
+	// find nim sums of total and each pile
+	for (var i = 0; i < arrayOfArraysOfPowerCounts.length; i++){
+		for (var a = 0; a < arrayOfArraysOfPowerCounts[i].length; a++){
+			if ((arrayOfArraysOfPowerCounts[i][a] === 0) != (arrayOfTotalPowers[a] === 0)){
+				arrayOfArraysOfNimSums[i][a] = 1;
+			}
+		}
+	}
+	
+	// Find biggest decrease in a pile
+	var arrayOfPilesNimSumsWithNetInDec = [0,0,0];
+	//original - nim sum with net
+	for (var i = 0; i < arrayOfPilesNimSumsWithNetInDec.length; i++){
+		for (var a = 0; a < arrayOfArraysOfNimSums[i].length; a++){
+			arrayOfPilesNimSumsWithNetInDec[i] += (arrayOfArraysOfNimSums[i][a] * Math.pow(2,a));
+		}
+	}
+	
+	var arrayOfDifferences = [0,0,0];
+	for (var i = 0; i < arrayOfPiles.length; i++){
+		arrayOfDifferences[i] = (arrayOfPiles[i] - arrayOfPilesNimSumsWithNetInDec[i]);
+	}
+	var biggestDiff = -10;
+	var placeOfBiggestDiff = -1;
+	for (var i = 0; i < arrayOfDifferences.length; i++){
+		if (arrayOfDifferences[i] > biggestDiff){
+			biggestDiff = arrayOfDifferences[i];
+			placeOfBiggestDiff = i;
+		}
+	}
+	//subtract biggest dif from place of biggest dif and alert
+	if (biggestDiff > 0){
+		console.log("good");
+		document.getElementById("infoField").innerHTML = ("Computer takes "+biggestDiff+" from pile "+(placeOfBiggestDiff+1)+".");
+		arrayOfPiles[placeOfBiggestDiff] -= biggestDiff;
+	} else {
+		// all piles are equally bad choices
+		if (!(arrayOfPiles[0]+arrayOfPiles[1]+arrayOfPiles[2])){
+		} else {
+			console.log("bad");
+			start: while (true){
+				randomPile = Math.floor(Math.random() * (2 - 0 + 1)) + 0;
+				randomAmmount = Math.floor(Math.random() * (2 - 1 + 1)) + 1;
+				if ((arrayOfPiles[randomPile] - randomAmmount) < 0){
+					continue start;
+				} else{
+					document.getElementById("infoField").innerHTML = ("Computer takes "+randomAmmount+" from pile "+(randomPile+1)+".");
+					arrayOfPiles[randomPile] -= randomAmmount;
+					break;
+				}
+			}
+		}
+	}
+	console.log("end "+!(arrayOfPiles[0]+arrayOfPiles[1]+arrayOfPiles[2])+" . "+(gameWon != 1));
+	if (!(arrayOfPiles[0]+arrayOfPiles[1]+arrayOfPiles[2]) && (gameWon != 1)){
+		console.log("game Won");
+		document.getElementById("infoField").innerHTML = "Computer Wins!";
+		gameWon = 1;
+	}
+	update();
+}	
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
